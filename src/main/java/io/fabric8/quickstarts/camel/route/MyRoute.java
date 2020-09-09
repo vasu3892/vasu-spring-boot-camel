@@ -46,6 +46,16 @@ public class MyRoute extends RouteBuilder {
 			}
 		});
 
+		from("timer://foo?period=5000").process(new Processor() {
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				long memory = 0;
+				Runtime rt = Runtime.getRuntime();
+				memory = rt.freeMemory() / (1024 * 1024);
+				exchange.getIn().setBody("current free memory ::: " + memory + "MB");
+			}
+		}).log("from timer ::: ${body}");
+
 	}
 
 }
