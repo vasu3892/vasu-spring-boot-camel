@@ -20,9 +20,6 @@ public class MyRoute extends RouteBuilder {
 		// accept rest get call
 		rest().get("/heavy").description("Heavy Memory-Consumption Route").to("direct:heavyRoute");
 
-		onException(Exception.class).handled(true).setBody()
-				.simple("FINAL MEMORY FROM ON-EXCEPTION ::: ${in.headers.finalMemory}");
-
 		from("direct:heavyRoute").log("entered heavy route").process(new Processor() {
 			@Override
 			public void process(Exchange exchange) throws Exception {
@@ -30,14 +27,16 @@ public class MyRoute extends RouteBuilder {
 				long memory = 0;
 				Runtime rt = Runtime.getRuntime();
 
-				while (true) {
-					byte[] b = new byte[1048576];
+				// loop for filling up 200 MB
+				for (int i = 1; i <= 200; i++) {
+					byte[] b = new byte[1024 * 1024]; // assign 1 MB
 					list.add(b);
 					memory = rt.freeMemory() / (1024 * 1024);
 					System.out.println("free memory: " + memory + "MB");
 					exchange.getIn().setHeader("finalMemory", memory + "MB");
 
-					if (memory < 10) {
+					// break if memory left is less than 10 MB
+					if (memory <= 10) {
 						break;
 					}
 				}
