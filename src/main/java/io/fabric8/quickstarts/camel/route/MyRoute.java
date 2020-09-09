@@ -23,21 +23,29 @@ public class MyRoute extends RouteBuilder {
 		onException(Exception.class).handled(true).setBody()
 				.simple("FINAL MEMORY FROM ON-EXCEPTION ::: ${in.headers.finalMemory}");
 
-		from("direct:heavyRoute").log("from heavy route").setBody().simple("<root>from heavy route</root>")
-				.process(new Processor() {
-					@Override
-					public void process(Exchange exchange) throws Exception {
-						List<byte[]> list = new ArrayList<byte[]>();
-						while (true) {
-							byte[] b = new byte[1048576];
-							list.add(b);
-							Runtime rt = Runtime.getRuntime();
-							long memory = rt.freeMemory() / (1024 * 1024);
-							System.out.println("free memory: " + memory + "MB");
-							exchange.getIn().setHeader("finalMemory", memory + "MB");
-						}
+		from("direct:heavyRoute").log("entered heavy route").process(new Processor() {
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				List<byte[]> list = new ArrayList<byte[]>();
+				long memory = 0;
+				Runtime rt = Runtime.getRuntime();
+
+				while (true) {
+					byte[] b = new byte[1048576];
+					list.add(b);
+					memory = rt.freeMemory() / (1024 * 1024);
+					System.out.println("free memory: " + memory + "MB");
+					exchange.getIn().setHeader("finalMemory", memory + "MB");
+
+					if (memory < 10) {
+						break;
 					}
-				});
+				}
+
+				memory = rt.freeMemory() / (1024 * 1024);
+				exchange.getIn().setBody("final free memory: " + memory + "MB");
+			}
+		});
 
 	}
 
