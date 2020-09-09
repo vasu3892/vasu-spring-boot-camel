@@ -104,6 +104,10 @@
             <artifactId>kubernetes-assertions</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-servlet</artifactId>
+		</dependency>
 
     </dependencies>
 
